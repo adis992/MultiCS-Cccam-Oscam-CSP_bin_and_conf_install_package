@@ -5,7 +5,7 @@
 #
 #Requirements: Debian 32 & 64 Bit
 #            Installation Package.
-#put the cccamoscam_install_package in /tmp
+#put the MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package in /tmp
 #put this script in /tmp then chmod 755 this script
 
 OWNER=$(grep 1000:1000: /etc/passwd|cut -f1 -d':')
@@ -20,9 +20,9 @@ arch=$(getconf LONG_BIT)
 ######################
 echo "${txtgreen}Script for automated CCcam/Oscam/Multics/Csp installation ${txtrst}"
 sleep 2
-chown $OWNER /tmp/cccamoscam_install_package
+chown $OWNER /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package
 sleep 2
-if [ ! -e  /tmp/cccamoscam_install_package ] ; then
+if [ ! -e  /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package ] ; then
 echo "${txtgreen}WARNING !!!!!!! ${txtrst}"
 echo "${txtgreen}Install package is not in tmp directory ${txtrst}"
 echo "${txtgreen}please check if its there ${txtrst}"
@@ -35,10 +35,10 @@ echo "${txtgreen}Check linux architecture x32-bit or x64-bit ${txtrst}"
 echo "${textpurple}$arch-bit OS Detected${txtrst}"
 echo " "
 sleep 3
-mv /tmp/cccamoscam_install_package/multics-x$arch /tmp/cccamoscam_install_package/multics
-mv /tmp/cccamoscam_install_package/oscam-x$arch /tmp/cccamoscam_install_package/oscam
-mv /tmp/cccamoscam_install_package/CCcam-x$arch /tmp/cccamoscam_install_package/cccam_2.1.3
-mv /tmp/cccamoscam_install_package/csp-x$arch /tmp/cccamoscam_install_package/csp
+mv /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/multics-x$arch /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/multics
+mv /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/oscam-x$arch /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/oscam
+mv /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/CCcam-x$arch /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/cccam_2.1.3
+mv /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/csp-x$arch /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/csp
 ######################
 ##Make Directories####
 ######################
@@ -73,7 +73,7 @@ mkdir /var/oscam-configs-backup
 echo "${txtred}Step 2 ${txtrst}"
 echo "${txtgreen}Moving CCcam executable to correct folder ${txtrst}"
 sleep 3
-mv /tmp/cccamoscam_install_package/multics /usr/local/bin
+mv /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/multics /usr/local/bin
 chmod 755 /usr/local/bin/multics
 sleep 2
 ######################
@@ -82,7 +82,7 @@ sleep 2
 echo "${txtred}Step 3 ${txtrst}"
 echo "${txtgreen}Moving CCcam executable to correct folder ${txtrst}"
 sleep 3
-mv /tmp/cccamoscam_install_package/cccam_2.1.3 /usr/local/bin
+mv /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/cccam_2.1.3 /usr/local/bin
 chmod 755 /usr/local/bin/cccam_2.1.3
 sleep 2
 ######################
@@ -91,7 +91,7 @@ sleep 2
 echo "${txtred}Step 4 ${txtrst}"
 echo "${txtgreen}Moving oscam executable to correct folder ${txtrst}"
 sleep 3
-mv /tmp/cccamoscam_install_package/oscam /usr/local/bin
+mv /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/oscam /usr/local/bin
 chmod 755 /usr/local/bin/oscam
 ######################
 ######Move csp ######
@@ -99,7 +99,7 @@ chmod 755 /usr/local/bin/oscam
 echo "${txtred}Step 5 ${txtrst}"
 echo "${txtgreen}Moving CCcam executable to correct folder ${txtrst}"
 sleep 3
-mv /tmp/cccamoscam_install_package/csp /usr/local/
+mv /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/csp /usr/local/
 chmod 755 /usr/local/csp/cardproxy.sh
 sleep 2
 ######################
@@ -108,7 +108,7 @@ sleep 2
 echo "${txtred}Step 6 ${txtrst}"
 echo "${txtgreen}Move the scripts to /var/script ${txtrst}"
 sleep 3
-mv /tmp/cccamoscam_install_package/*.sh /var/script
+mv /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/*.sh /var/script
 ######################
 ####Chmod Scripts#####
 ######################
@@ -132,22 +132,22 @@ sleep 3
 chown $OWNER /etc/rc.local
 rm /etc/rc.local
 sleep 2
-mv /tmp/cccamoscam_install_package/rc.local /etc
-mv /tmp/cccamoscam_install_package/CCcam.channelinfo /var/etc
-mv /tmp/cccamoscam_install_package/CCcam.providers /var/etc
-mv /tmp/cccamoscam_install_package/CCcam.prio /var/etc
-mv /tmp/cccamoscam_install_package/CCcam.cfg /var/etc/
-mv /tmp/cccamoscam_install_package/oscam.conf /usr/local/etc
-mv /tmp/cccamoscam_install_package/oscam.server /usr/local/etc
-mv /tmp/cccamoscam_install_package/oscam.user /usr/local/etc
-mv /tmp/cccamoscam_install_package/oscam.services /usr/local/etc
-mv /tmp/cccamoscam_install_package/oscam.srvid /usr/local/etc
-mv /tmp/cccamoscam_install_package/blue_shadow-v_1.css /usr/local/etc
-mv /tmp/cccamoscam_install_package/multics.cfg /var/etc
-mv /tmp/cccamoscam_install_package/ip2country.csv /var/etc
-mv /tmp/cccamoscam_install_package/multics.css /var/etc
-mv /tmp/cccamoscam_install_package/baddcw.cfg /var/etc
-mv /tmp/cccamoscam_install_package/cache.cfg /var/etc
+mv /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/rc.local /etc
+mv /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/CCcam.channelinfo /var/etc
+mv /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/CCcam.providers /var/etc
+mv /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/CCcam.prio /var/etc
+mv /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/CCcam.cfg /var/etc/
+mv /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/oscam.conf /usr/local/etc
+mv /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/oscam.server /usr/local/etc
+mv /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/oscam.user /usr/local/etc
+mv /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/oscam.services /usr/local/etc
+mv /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/oscam.srvid /usr/local/etc
+mv /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/blue_shadow-v_1.css /usr/local/etc
+mv /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/multics.cfg /var/etc
+mv /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/ip2country.csv /var/etc
+mv /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/multics.css /var/etc
+mv /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/baddcw.cfg /var/etc
+mv /tmp/MultiCS-Cccam-Oscam-CSP_bin_and_conf_install_package/cache.cfg /var/etc
 sleep 1
 chmod 755 /etc/rc.local
 sleep 1
