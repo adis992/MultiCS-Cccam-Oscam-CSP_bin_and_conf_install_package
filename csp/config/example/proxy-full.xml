@@ -1,0 +1,276 @@
+<cardserv-proxy ver="0.8.12">
+
+  <!--
+    This file is just an example intended to illustrate some of the possible settings, it is not a reasonable real world
+    configuration by any means. See README.txt, proxy-reference.html and proxy-mimimal.xml for further information.
+    If you want a decent starting point, just start the proxy without any config file, one will be generated with defaults.
+  -->
+
+  <ca-profiles>
+    <default-des-key>01 02 03 04 05 06 07 08 09 10 11 12 13 14</default-des-key>
+    <max-threads>1500</max-threads> <!-- global thread limit -->
+    <session-timeout>240</session-timeout> <!-- maximum idle time in minutes for client sessions (that dont send keep-alives) -->
+    <session-keepalive excluded-clients="">60</session-keepalive> <!-- don't use this unless you know what its about -->
+    <newcamd-maxmsgsize>400</newcamd-maxmsgsize> <!-- CWS_NETMSGSIZE -->
+
+    <profile name="cable" ca-id="0B00" enabled="true" debug="true"> <!-- debug true requires the statusweb or other monitoring option to be useful -->
+      <!-- ca-id must be set correctly, or set to 0000 if unknown -->
+      <newcamd listen-port="13112">
+        <allow-list></allow-list> <!-- leave empty or omit to allow all except those in deny list -->
+        <deny-list></deny-list>
+      </newcamd>
+      <newcamd listen-port="12113">
+        <no-encryption>true</no-encryption> <!-- only supported by alex-cs -->
+        <card-data type="connector" name="card1"/>
+        <!-- clients connecting to this port get data from newcamd-connector "card1" unless they are au-users (those get data from the cards they update) -->
+      </newcamd>
+      <radegast listen-port="13113" sid-in-0x21="true">
+        <allow-list></allow-list> <!-- allow/deny lists are the only means of access control for radegast, there are no user accounts -->
+        <deny-list></deny-list>
+      </radegast>
+      <services-file>etc/services.c</services-file> <!-- optional enigma services file, parsed for service names only -->
+    </profile>
+
+    <profile name="terrestrial" ca-id="0500" enabled="true">
+      <newcamd listen-port="13256" bind-ip="192.168.0.23">
+        <card-data type="file" name="etc/mydata.card" override-au="true"/> <!-- clients get data from the file "mydata.dat", even if they are au-users -->
+      </newcamd>
+      <newcamd listen-port="13257">
+        <card-data type="config" ca-id="0604"> <!-- clients get data specified here, all au info will be zeroes -->
+          <providers>00 00 00,00 00 01</providers>
+        </card-data>
+      </newcamd>
+      <radegast listen-port="13255"/>
+      <services-file>etc/services.t</services-file>
+    </profile>
+
+    <profile name="satellite1" ca-id="0000" enabled="true"> <!-- use ca-id 0000 to indicate unknown or irrelevant ca-id -->
+      <!-- if multiple cards use the same ca id the connectors need to be pre-configured for the correct profile, auto-assignment cannot be used -->
+      <newcamd listen-port="13257">
+        <card-data type="empty"/> <!-- clients receive empty card-data with only the ca-id set, and a single 000000 provider ident -->
+      </newcamd>
+      <services-file provider="somesat unknown">etc/services.s1</services-file>
+      <!-- specify provider strings to only parse those services in the file that have a matching p:provider entry, use this to avoid ?duplicates? -->
+      <max-cw-wait>4</max-cw-wait> <!-- override the global max-cw-wait for this profile (global set under connection-manager) -->
+      <congestion-limit>3</congestion-limit> <!-- override the global congestion limit for this profile (the point @ which the proxy considers a connector to be congested based on queue-length in seconds)  -->
+    </profile>
+
+    <profile name="satellite2" ca-id="0000" enabled="true" cache-only="true"> <!-- cache-only mode requires the clusteredcache -->
+      <newcamd listen-port="13258">
+        <des-key>14 13 12 11 10 09 08 07 06 05 04 03 02 01</des-key>
+      </newcamd>
+      <services-file provider="othersat" format="simple">etc/sat2services.properties</services-file>
+      <!-- simple format services, plain text with: sid=service name (one per line, sid in hex) -->
+    </profile>
+  </ca-profiles>
+
+  <logging log-ecm="true" log-emm="false" log-zapping="false" hide-ip-addresses="true">
+    <log-file rotate-count="5" rotate-max-size="2048">log/cardserv.log</log-file>
+    <log-level>INFO</log-level> <!-- levels: OFF, SEVERE, WARNING, INFO, FINE, FINER, FINEST, ALL -->
+    <silent>true</silent> <!-- surpress stdout output if true -->
+    <debug>false</debug> <!-- set to true to print line numbers, stack traces and thread info -->
+        
+    <warning-threshold bad-flags="YNMTABQOGXWD-" max-delay="6000"/> <!-- user warning log threshold, if profile debug is true -->
+    <event-threshold min-count="1"/> <!-- cws event threshold, nr of failure events in a row required before an event is registered -->
+  </logging>
+
+  <rmi enabled="true"> <!-- java rmi registry, for integration with other java apps (and used by the web gui) -->
+    <allowed-ip-masks>192.168.0.* 10.0.1.2</allowed-ip-masks> <!-- leave empty to only allow status web access -->
+    <registry-port>4099</registry-port>
+    <local-port>4098</local-port>
+    <local-name>cardservproxy</local-name>
+    <display-name>Csproxy1</display-name>
+
+    <status-web enabled="false"> <!-- built in web gui for monitoring -->
+      <listen-port>8082</listen-port>
+      <ssl enabled="false"> <!-- https -->
+        <keystore password="123456">etc/keystore</keystore>
+        <!-- to generate a java keystore file called "keystore" with pass "123456" and a self-signed certificate for localhost, use: -->
+        <!-- keytool -keystore keystore -genkey -alias Cardservproxy -keyalg RSA -storepass 123456 -keypass 123456 -dname "cn=localhost" -->
+      </ssl>
+      <war-file>lib/cs-status.war</war-file>
+      <welcome-file>cs-status.html</welcome-file>
+      <log-file rotate-count="5" rotate-max-size="2048">log/web-access.log</log-file> <!-- apache-like combined log for the web gui, remove element to disable -->
+      <super-users>test</super-users> <!-- list of admin users that should have the admin and config sections enabled -->
+    </status-web>
+  </rmi>
+
+  <user-manager class="com.bowman.cardserv.SimpleUserManager" allow-on-failure="true" log-failures="true">
+    <auth-config>
+      <!-- open access = accept newcamd access from anyone with these credentials, creating new temp users on the fly -->
+      <open-access enabled="false">
+        <open-profiles>cable satellite1</open-profiles> <!-- optional, only allow open access to these profiles, remove for all -->
+        <open-username-prefix>csp</open-username-prefix> <!-- optional, only allow usernames starting with this string -->
+        <open-password>publicaccess</open-password>        
+      </open-access>
+
+      <!-- local users -->
+      <user name="test" password="test" ip-mask="192.168.0.*" profiles="cable" admin="true"/>
+      <user name="test2" password="test2" profiles="cable terrestrial" map-exclude="true"/>
+      <user name="test3" password="test3" max-connections="4"/> <!-- max-connections defaults to the number of accessible profiles if omitted -->
+      <user name="test4" password="test4" enabled="false" debug="true"/> <!-- debug enables ecm/emm/zap logging for this user -->
+      <!-- omit profiles = all profile access -->
+    </auth-config>
+  </user-manager>
+
+  <connection-manager>
+    <reconnect-interval>60</reconnect-interval>
+    <max-cw-wait>9</max-cw-wait>
+    <hard-congestion-limit>true</hard-congestion-limit>
+    <log-sid-mismatch>true</log-sid-mismatch> <!-- log warning when sid in server reply is different from what was requested -->
+    <default-des-key>01 02 03 04 05 06 07 08 09 10 11 12 13 14</default-des-key>
+    <default-keepalive-interval>300</default-keepalive-interval>
+    <default-client-id>00 00</default-client-id>
+    <default-max-queue>40</default-max-queue> <!-- max queue allowed for one connector, do not change -->
+    <default-min-delay>10</default-min-delay> <!-- delay (ms) between requests sent via one connector, in async mode -->
+    <!-- 4C 43 = LCE, 43 33 = Camd3, 72 64 = Radegast, 67 62 = Gbox, 56 44 = VDR-SC, 77 63 = WinCSC-->
+
+    <timeout-disconnect-threshold>3</timeout-disconnect-threshold>
+    <!-- max nr timeouts in a row before disconnect/reconnect, default is 2 -->
+
+    <cannot-decode-wait>0</cannot-decode-wait>
+    <!-- in seconds, set to > 0 to enable a fixed delay whenever a services cannot be decoded locally, to give remote
+         cache entries a chance to arrive... reasonable values are probably 1-3, only makes sense if using clusteredcache -->
+
+    <delay-missing-sid>200</delay-missing-sid>
+    <!-- in milliseconds, slow requests without sid to increase the chances of other requests for the same ecm reaching
+         the cache first... only affects large shares with a minority of clients that dont send sid -->
+
+    <service-map>
+      <mapper> <!-- defaults -->
+        <cache-dir>cache</cache-dir> <!-- this is the service map file, delete it to reset which services exist on which card -->
+        <cache-save-age>300</cache-save-age>
+        <auto-map-services>true</auto-map-services> <!-- aggressive service discovery, check all unknown cards, leave this on -->
+        <reset-services></reset-services> <!-- clear maps hourly for these sids (list of hex sids separated by space) -->
+        <auto-reset-threshold>20</auto-reset-threshold> <!-- number of failed before cannotdecode map is cleared for id -->
+        <hide-unknown-services>false</hide-unknown-services>
+        <hide-disabled-connectors>false</hide-disabled-connectors>
+        <log-missing-sid>true</log-missing-sid> <!-- log whenever a newcamd ecm arrives without sid -->
+
+        <!-- send this instead of 0 to servers when sid is unknown and also treat this sid in client reqs as if sid 0 -->
+        <unknown-sid>434c</unknown-sid>
+      </mapper>
+      <mapper profile="cable"> <!-- override defaults for specific profile -->
+        <reset-services>051f 0520 0515</reset-services>
+        <block-services>052f</block-services>
+        <retry-lost-services>true</retry-lost-services> <!-- attempt to actively rediscover lost services -->
+      </mapper>
+      <mapper profile="satellite1">
+        <auto-reset-threshold>1</auto-reset-threshold>
+        <broadcast-missing-sid>true</broadcast-missing-sid> <!-- send requests with no sid to all connectors in this profile -->
+      </mapper>
+    </service-map>
+
+    <external-connector-config enabled="false"> <!-- load additional connector definitions from a separate file -->
+      <connector-file-url>http://192.168.0.5/connectors.xml</connector-file-url>
+      <connector-file-key>asdf22</connector-file-key>
+      <update-interval>5</update-interval> <!-- minutes, 0 for only manual updates -->
+    </external-connector-config>    
+
+    <cws-connectors>
+
+      <newcamd-connector name="card1" enabled="true" metric="0" qos-class="none"> <!-- lower metric = priority, 1 is default -->
+        <host>remote.host.com</host>
+        <port>13111</port>
+        <user>asdf</user>
+        <password>asdf</password>
+        <client-id>67 62</client-id> <!-- identify as gbox2cs, defaults to 00 00 if omitted (generic) -->
+        <au-users>test1 test4</au-users> <!-- any and all emms sent by these users will be forwarded to this card -->
+      </newcamd-connector>
+
+      <!-- specifying profile forces connector mapping regardless of card ca-id -->
+      <newcamd-connector name="card2" profile="satellite1" enabled="false">
+        <host>dreambox</host>
+        <port>10001</port>
+        <user>tst</user>
+        <password>tst</password>
+        <des-key>14 13 12 11 10 09 08 07 06 05 04 03 02 01</des-key>
+        <au-users>test2</au-users>
+
+        <!-- avoid auto service mapping for these sids on this card only, use with care -->
+        <can-decode-services>4fa 3e0 123 28e</can-decode-services>
+        <cannot-decode-services>1ba 2ef 401</cannot-decode-services>        
+      </newcamd-connector>
+
+      <radegast-connector name="rtest" profile="satellite1" enabled="true">
+        <host>10.0.0.5</host>
+        <port>10003</port>
+        <can-decode-services></can-decode-services>
+        <cannot-decode-services></cannot-decode-services>
+      </radegast-connector>
+
+      <conax-connector name="conax-card" profile="satellite2" class="com.bowman.cardserv.cws.ConaxCwsConnector" jar-file="conaxconnector.jar">
+        <au-users>test3</au-users>
+        <node>0</node>
+      </conax-connector>
+
+    </cws-connectors>
+  </connection-manager>
+
+  <proxy-plugins>
+    <plugin class="com.bowman.cardserv.LoggingPlugin" enabled="false">
+      <plugin-config>
+        <log-dir>log/traffic</log-dir>
+        <log-level>ALL</log-level>
+        <ip-filter></ip-filter> <!-- log only traffic from this ip (wildcards supported) -->
+      </plugin-config>
+    </plugin>
+  </proxy-plugins>
+
+  <cache-handler class="com.bowman.cardserv.DefaultCache">
+    <cache-config>
+      <cw-max-age>19</cw-max-age>
+      <max-cache-wait>4</max-cache-wait>
+    </cache-config>
+  </cache-handler>
+
+
+  <!-- 2 proxy cluster, unicast udp -->
+  <!-- cache-handler class="com.bowman.cardserv.ClusteredCache">
+    <cache-config>
+      <cw-max-age>19</cw-max-age>
+      <max-cache-wait>7</max-cache-wait>
+      <remote-host>peer.proxy.host.com</remote-host>
+      <remote-port>54278</remote-port>
+      <local-port>54277</local-port>
+    </cache-config>
+  </cache-handler -->
+
+  <!-- multiple proxy LAN cluster, multicast udp (not tested) -->
+  <!-- cache-handler class="com.bowman.cardserv.ClusteredCache">
+    <cache-config>
+      <cw-max-age>19</cw-max-age>
+      <max-cache-wait>7</max-cache-wait>
+      <multicast-group>230.2.3.2</multicast-group>
+      <multicast-ttl>2</multicast-ttl>
+      <remote-port>54278</remote-port>
+      <local-port>54278</local-port>
+    </cache-config>
+  </cache-handler -->
+
+  <!-- multiple proxy "tracked" cluster, unicast udp, fetches peer list from url (encryption optional) -->
+  <!-- cache-handler class="com.bowman.cardserv.ClusteredCache">
+    <cache-config>
+      <cw-max-age>19</cw-max-age>
+      <max-cache-wait>7</max-cache-wait>
+      <local-host>csproxy3.rtfm.se</local-host>
+      <local-port>54278</local-port>
+      <tracker-url>http://cstracker.host.com/list.enc</tracker-url>
+      <tracker-key>secretkey</tracker-key>
+      <tracker-update>10</tracker-update>
+      <hide-names>true</hide-names>
+    </cache-config>
+  </cache-handler -->
+  <!-- setting a tracker-key means list.enc file is assumed to be encrypted, tracker-update is in minutes (0 disables) -->
+
+  <!-- receive only setup, from any of the other config types -->
+  <!-- cache-handler class="com.bowman.cardserv.ClusteredCache">
+    <cache-config>
+      <cw-max-age>19</cw-max-age>
+      <max-cache-wait>9</max-cache-wait>
+      <local-port>54277</local-port>
+    </cache-config>
+  </cache-handler -->
+
+</cardserv-proxy>
+

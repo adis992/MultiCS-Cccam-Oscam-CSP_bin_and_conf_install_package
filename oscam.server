@@ -1,0 +1,33 @@
+# OSCam Konfiguration IPC - oscam.server
+
+
+[reader]
+label                         = VPS
+protocol                      = cccam
+device                        = .................,3569
+account                       = debi,dm800
+group                         = 1
+cccmaxhops                    = 3
+ccckeepalive                  = 1
+cacheex 			 = 3
+cacheex_maxhop		  = 1
+
+[reader]
+label                         = VPS-1
+protocol                      = cccam
+device                        = ..................,3579
+account                       = 2debian,2dm800
+group                         = 1
+cccmaxhops                    = 3
+ccckeepalive                  = 1
+cacheex			  = 3
+cacheex_maxhop		  = 1
+
+
+[reader]
+label                         = newcamda aktarilan
+enable                        = 1
+protocol                      = newcamd
+group                         = 1
+device                        =  0.0.0.0-255.255.255.255  
+											
